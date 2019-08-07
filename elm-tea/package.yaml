@@ -1,0 +1,92 @@
+name:                elm-tea
+version:             0.1.0.0
+github:              "miniBill/elm-tea"
+license:             BSD3
+author:              "Leonardo Taglialegne"
+maintainer:          "cmt.miniBill@gmail.com"
+copyright:           "2019 Leonardo Taglialegne"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/miniBill/elm-tea#readme>
+
+dependencies:
+- elm-prelude >=0.1 && <0.2
+
+library:
+  source-dirs: src
+  dependencies:
+  - vty >=5.0 && <6.0
+  exposed-modules:
+  - CLI
+  - CLI.Attributes
+  - CLI.Layout
+  - CLI.Types
+  other-modules:
+  - CLI.Focus
+  - CLI.Types.Internal
+  default-extensions:
+  - Strict
+  - StrictData
+  - OverloadedStrings
+  ghc-options:
+  - -Wall
+  - -Werror
+  - -Wcompat
+  - -Wincomplete-record-updates
+  - -Wincomplete-uni-patterns
+  - -Wredundant-constraints
+
+executables:
+  elm-tea:
+    main: Form.hs
+    source-dirs: app
+    other-modules: []
+    default-extensions:
+    - Strict
+    - StrictData
+    - OverloadedStrings
+    ghc-options:
+    - -Wall
+    - -Werror
+    - -Wcompat
+    - -Wincomplete-record-updates
+    - -Wincomplete-uni-patterns
+    - -Wredundant-constraints
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - elm-prelude >=0.1 && <0.2
+    - elm-tea
+
+tests:
+  elm-tea-test:
+    main:                Spec.hs
+    source-dirs:         test
+    default-extensions:
+    - Strict
+    - StrictData
+    - OverloadedStrings
+    ghc-options:
+    - -Wall
+    - -Werror
+    - -Wcompat
+    - -Wincomplete-record-updates
+    - -Wincomplete-uni-patterns
+    - -Wredundant-constraints
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - elm-prelude >=0.1 && <0.2
+    - elm-tea
