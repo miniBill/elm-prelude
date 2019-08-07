@@ -1,5 +1,3 @@
-{-# LANGUAGE ImplicitPrelude #-}
-
 module CLI.Focus
   ( finalFocus
   , getFocusPosition

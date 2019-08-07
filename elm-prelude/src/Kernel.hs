@@ -16,6 +16,7 @@ module Kernel
   , Number(..)
   , Ord(..)
   , Ordering(..)
+  , String
   , (.)
   , (&)
   , (&&)
@@ -41,6 +42,7 @@ module Kernel
   , pi
   , remainderBy
   , round
+  , show
   , sin
   , sqrt
   , tan
@@ -50,10 +52,11 @@ module Kernel
   ) where
 
 import           Data.Function  ((&))
+import qualified Data.Text      as T
 import qualified Hack
 import           "base" Prelude (Bool (..), Char, Eq (..), Maybe (..),
-                                 Monad (..), Ord (..), Ordering, fromIntegral,
-                                 not, ($), (&&), (.), (||))
+                                 Monad (..), Ord (..), Ordering, Show (..),
+                                 fromIntegral, not, ($), (&&), (.), (||))
 import qualified "base" Prelude as P
 
 type IO a = P.IO a
@@ -64,6 +67,8 @@ type Float = P.Float
 
 type List a = [a]
 
+type String = T.Text
+
 infixl 4 ++
 
 class Appendable a where
@@ -71,6 +76,9 @@ class Appendable a where
 
 instance Appendable [a] where
   (++) = (P.++)
+
+instance Appendable String where
+  (++) = T.append
 
 infixl 6 +
 

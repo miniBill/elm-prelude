@@ -12,6 +12,7 @@ module Protolude
   , Never
   , Number(..)
   , Ordering(..)
+  , String
   , (.)
   , (/)
   , (//)
@@ -31,6 +32,7 @@ module Protolude
   , degrees
   , e
   , floor
+  , fromIntegral
   , fromPolar
   , identity
   , isInfinite
@@ -43,6 +45,7 @@ module Protolude
   , radians
   , remainderBy
   , round
+  , show
   , sin
   , sqrt
   , tan
@@ -54,8 +57,9 @@ module Protolude
   ) where
 
 import           Kernel (Appendable, Bool (..), Char, Eq (..), IO, List,
-                         Maybe (..), Number (..), Ord (..), Ordering (..), max,
-                         min, ($), (&), (&&), (.), (||))
+                         Maybe (..), Number (..), Ord (..), Ordering (..),
+                         String, fromIntegral, max, min, show, ($), (&), (&&),
+                         (.), (||))
 import           Kernel (fromInteger)
 import qualified Kernel
 

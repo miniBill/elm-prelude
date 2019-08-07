@@ -6,8 +6,7 @@ module Dict
 
 import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as DMS
-import           Kernel          (Ord (..))
-import           Prelude
+import           Protolude       (Maybe (..), Ord (..))
 
 newtype Dict k v =
   Dict (Map k v)

@@ -36,4 +36,3 @@ module Prelude
   ) where
 
 import           Protolude
-import           String    (String)

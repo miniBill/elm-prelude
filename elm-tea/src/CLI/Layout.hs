@@ -1,23 +1,19 @@
-{-# LANGUAGE ImplicitPrelude #-}
-{-# LANGUAGE PackageImports  #-}
-
 module CLI.Layout
   ( display
   , getSize
   , childrenPositions
   ) where
 
-import           CLI.Types       (AlignmentType (..), Attribute (..), CLI (..),
-                                  InputType (..), LayoutType (..))
-import           Color           (Color)
+import           CLI.Types    (AlignmentType (..), Attribute (..), CLI (..),
+                               InputType (..), LayoutType (..))
+import           Color        (Color)
 import qualified Color
 import qualified Compat
-import           Graphics.Vty    (Attr, Image, Picture)
-import qualified Graphics.Vty    as Vty
+import           Graphics.Vty (Attr, Image, Picture)
+import qualified Graphics.Vty as Vty
 import qualified List
 import qualified Maybe
 import qualified String
-import qualified String.Internal
 import qualified Tuple
 
 display :: CLI msg -> Picture
@@ -26,7 +22,7 @@ display = Vty.picForImage . displayWidget Vty.defAttr
 displayWidget :: Attr -> CLI msg -> Image
 displayWidget attr widget =
   case widget of
-    Text s -> Vty.text' attr $ String.Internal.raw s -- A piece of text is simply written
+    Text s -> Vty.text' attr s -- A piece of text is simply written
     Container layout alignment children ->
       displayContainer layout alignment attr children
     Border child -> displayBorder attr child

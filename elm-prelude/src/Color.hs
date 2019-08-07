@@ -12,7 +12,7 @@ module Color
   ) where
 
 import qualified List
-import           Prelude
+import           Protolude
 import qualified String
 
 data Color =

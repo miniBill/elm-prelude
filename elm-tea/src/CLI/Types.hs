@@ -1,5 +1,3 @@
-{-# LANGUAGE ImplicitPrelude #-}
-
 module CLI.Types
   ( AlignmentType(..)
   , Attribute(..)

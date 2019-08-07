@@ -36,7 +36,6 @@ library:
   - Prelude
   - Result
   - String
-  - String.Internal
   - Tuple
   other-modules:
   - Hack

@@ -1,5 +1,4 @@
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE ImplicitPrelude   #-}
 
 module CLI
   ( CLI
