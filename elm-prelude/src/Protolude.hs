@@ -1,8 +1,9 @@
 module Protolude
-  ( Bool(..)
-  , Comparable
+  ( Appendable(..)
+  , Bool(..)
+  , Ord(..)
   , Char
-  , Equatable
+  , Eq(..)
   , Float
   , Int
   , IO
@@ -10,23 +11,16 @@ module Protolude
   , Maybe(..)
   , Never
   , Number
-  , Order(..)
+  , Ordering(..)
   , (-)
   , (.)
   , (*)
   , (/)
   , (//)
-  , (/=)
   , (&)
   , (&&)
   , (^)
   , (+)
-  , (++)
-  , (<)
-  , (<=)
-  , (==)
-  , (>)
-  , (>=)
   , (||)
   , ($)
   , abs
@@ -37,7 +31,6 @@ module Protolude
   , atan2
   , ceiling
   , clamp
-  , compare
   , cos
   , degrees
   , e
@@ -48,13 +41,10 @@ module Protolude
   , isInfinite
   , isNaN
   , logBase
-  , max
-  , min
   , modBy
   , negate
   , never
   , not
-  , orderToOrdering
   , pi
   , radians
   , remainderBy
@@ -69,85 +59,11 @@ module Protolude
   , xor
   ) where
 
-import           Kernel (Appendable, Bool (..), Char, Comparable, Equatable, IO,
-                         List, Maybe (..), Number, Order (..), orderToOrdering,
-                         ($), (&), (.))
+import           Kernel (Appendable, Bool (..), Char, Eq (..), IO, List,
+                         Maybe (..), Number, Ord (..), Ordering (..), max, min,
+                         ($), (&), (&&), (.), (||))
 import           Kernel (fromInteger)
 import qualified Kernel
-
-{-| Tons of useful functions that get imported by default.
-# Math
-@docs Int, Float, (+), (-), (*), (/), (//), (^)
-# Int to Float / Float to Int
-@docs toFloat, round, floor, ceiling, truncate
-# Equality
-@docs (==), (/=)
-# Comparison
-These functions only work on `comparable` types. This includes numbers,
-characters, strings, lists of comparable things, and tuples of comparable
-things.
-@docs (<), (>), (<=), (>=), max, min, compare, Order
-# Booleans
-@docs Bool, not, (&&), (||), xor
-# Append Strings and Lists
-@docs (++)
-# Fancier Math
-@docs modBy, remainderBy, negate, abs, clamp, sqrt, logBase, e
-# Angles
-@docs degrees, radians, turns
-# Trigonometry
-@docs pi, cos, sin, tan, acos, asin, atan, atan2
-# Polar Coordinates
-@docs toPolar, fromPolar
-# Floating Point Checks
-@docs isNaN, isInfinite
-# Function Helpers
-@docs identity, always, ($), (&), (.), Never, never
--}
-infixr 2 ||
-
-(||) :: Bool -> Bool -> Bool
-(||) = or
-
-infixr 3 &&
-
-(&&) :: Bool -> Bool -> Bool
-(&&) = and
-
-infix 4 ==
-
-(==) :: Equatable a => a -> a -> Bool
-(==) = eq
-
-infix 4 /=
-
-(/=) :: Equatable a => a -> a -> Bool
-(/=) = neq
-
-infix 4 <
-
-(<) :: Comparable a => a -> a -> Bool
-(<) = lt
-
-infix 4 >
-
-(>) :: Comparable a => a -> a -> Bool
-(>) = gt
-
-infix 4 <=
-
-(<=) :: Comparable a => a -> a -> Bool
-(<=) = le
-
-infix 4 >=
-
-(>=) :: Comparable a => a -> a -> Bool
-(>=) = ge
-
-infixr 5 ++
-
-(++) :: Appendable a => a -> a -> a
-(++) = append
 
 infixl 6 +
 
@@ -332,83 +248,6 @@ ceiling = Kernel.ceiling
 truncate :: Float -> Int
 truncate = Kernel.truncate
 
--- EQUALITY
-{-| Check if values are &ldquo;the same&rdquo;.
-**Note:** Elm uses structural equality on tuples, records, and user-defined
-union types. This means the values `(3, 4)` and `(3, 4)` are definitely equal.
-This is not true in languages like JavaScript that use reference equality on
-objects.
-**Note:** Equality (in the Elm sense) is not possible for certain types. For
-example, the functions `(\n -> n + 1)` and `(\n -> 1 + n)` are &ldquo;the
-same&rdquo; but detecting this in general is [undecidable][]. In a future
-release, the compiler will detect when `(==)` is used with problematic
-types and provide a helpful error message. This will require quite serious
-infrastructure work that makes sense to batch with another big project, so the
-stopgap is to crash as quickly as possible. Problematic types include functions
-and JavaScript values like `Json.Encode.Value` which could contain functions
-if passed through a port.
-[undecidable]: https://en.wikipedia.org/wiki/Undecidable_problem
--}
-eq :: Equatable a => a -> a -> Bool
-eq = Kernel.equal
-
-{-| Check if values are not &ldquo;the same&rdquo;.
-So `(a /= b)` is the same as `(not (a == b))`.
--}
-neq :: Equatable a => a -> a -> Bool
-neq = Kernel.notEqual
-
--- COMPARISONS
-{-|-}
-lt :: Comparable comparable => comparable -> comparable -> Bool
-lt = Kernel.lt
-
-{-|-}
-gt :: Comparable comparable => comparable -> comparable -> Bool
-gt = Kernel.gt
-
-{-|-}
-le :: Comparable comparable => comparable -> comparable -> Bool
-le = Kernel.le
-
-{-|-}
-ge :: Comparable comparable => comparable -> comparable -> Bool
-ge = Kernel.ge
-
-{-| Find the smaller of two comparables.
-    min 42 12345678 == 42
-    min "abc" "xyz" == "abc"
--}
-min :: Comparable comparable => comparable -> comparable -> comparable
-min x y =
-  if lt x y
-    then x
-    else y
-
-{-| Find the larger of two comparables.
-    max 42 12345678 == 12345678
-    max "abc" "xyz" == "xyz"
--}
-max :: Comparable comparable => comparable -> comparable -> comparable
-max x y =
-  if gt x y
-    then x
-    else y
-
-{-| Compare any two comparable values. Comparable values include `String`,
-`Char`, `Int`, `Float`, or a list or tuple containing comparable values. These
-are also the only values that work as `Dict` keys or `Set` members.
-    compare 3 4 == LT
-    compare 4 4 == EQ
-    compare 5 4 == GT
--}
-compare :: Comparable comparable => comparable -> comparable -> Order
-compare = Kernel.compare
-
-{-| Represents the relative ordering of two things.
-The relations are less than, equal to, and greater than.
--}
---type Order = Kernel.Order
 -- BOOLEANS
 {-| A “Boolean” value. It can either be `True` or `False`.
 **Note:** Programmers coming from JavaScript, Java, etc. tend to reach for
@@ -427,30 +266,6 @@ from Richard [here][rt].
 not :: Bool -> Bool
 not = Kernel.not
 
-{-| The logical AND operator. `True` if both inputs are `True`.
-    True  && True  == True
-    True  && False == False
-    False && True  == False
-    False && False == False
-**Note:** When used in the infix position, like `(left && right)`, the operator
-short-circuits. This means if `left` is `False` we do not bother evaluating `right`
-and just return `False` overall.
--}
-and :: Bool -> Bool -> Bool
-and = Kernel.and
-
-{-| The logical OR operator. `True` if one or both inputs are `True`.
-    True  || True  == True
-    True  || False == True
-    False || True  == True
-    False || False == False
-**Note:** When used in the infix position, like `(left || right)`, the operator
-short-circuits. This means if `left` is `True` we do not bother evaluating `right`
-and just return `True` overall.
--}
-or :: Bool -> Bool -> Bool
-or = Kernel.or
-
 {-| The exclusive-or operator. `True` if exactly one input is `True`.
     xor True  True  == False
     xor True  False == True
@@ -459,14 +274,6 @@ or = Kernel.or
 -}
 xor :: Bool -> Bool -> Bool
 xor = Kernel.xor
-
--- APPEND
-{-| Put two appendable things together. This includes strings, lists, and text.
-    "hello" ++ "world" == "helloworld"
-    [1,1,2] ++ [3,5,8] == [1,1,2,3,5,8]
--}
-append :: Appendable appendable => appendable -> appendable -> appendable
-append = Kernel.append
 
 -- FANCIER MATH
 {-| Perform [modular arithmetic](https://en.wikipedia.org/wiki/Modular_arithmetic).
@@ -515,8 +322,8 @@ negate n = Kernel.negate n
 -}
 abs :: Number number => number -> number
 abs n =
-  if lt n (fromInteger 0)
-    then (negate n)
+  if n < fromInteger 0
+    then negate n
     else n
 
 {-| Clamps a number within a given range. With the expression
@@ -527,9 +334,9 @@ abs n =
 -}
 clamp :: Number number => number -> number -> number -> number
 clamp low high number =
-  if lt number low
+  if number < low
     then low
-    else if gt number high
+    else if number > high
            then high
            else number
 

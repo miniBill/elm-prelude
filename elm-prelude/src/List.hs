@@ -200,7 +200,7 @@ reverse list = foldl (:) [] list
     member 9 [1,2,3,4] == False
     member 4 [1,2,3,4] == True
 -}
-member :: Equatable a => a -> List a -> Bool
+member :: Eq a => a -> List a -> Bool
 member x xs = any (\a -> a == x) xs
 
 {-| Determine if all elements satisfy some test.
@@ -231,7 +231,7 @@ any isOkay list =
     maximum [1,4,2] == Just 4
     maximum []      == Nothing
 -}
-maximum :: Comparable comparable => List comparable -> Maybe comparable
+maximum :: Ord comparable => List comparable -> Maybe comparable
 maximum list =
   case list of
     x:xs -> Just (foldl max x xs)
@@ -241,7 +241,7 @@ maximum list =
     minimum [3,2,1] == Just 1
     minimum []      == Nothing
 -}
-minimum :: Comparable comparable => List comparable -> Maybe comparable
+minimum :: Ord comparable => List comparable -> Maybe comparable
 minimum list =
   case list of
     x:xs -> Just (foldl min x xs)
@@ -359,7 +359,7 @@ map5 f =
 {-| Sort values from lowest to highest
     sort [3,1,5] == [1,3,5]
 -}
-sort :: Comparable comparable => List comparable -> List comparable
+sort :: Ord comparable => List comparable -> List comparable
 sort xs = sortBy identity xs
 
 {-| Sort values by a derived property.
@@ -370,8 +370,8 @@ sort xs = sortBy identity xs
     sortBy .height [chuck,alice,bob] == [alice,chuck,bob]
     sortBy String.length ["mouse","cat"] == ["cat","mouse"]
 -}
-sortBy :: Comparable comparable => (a -> comparable) -> List a -> List a
-sortBy f = Data.List.sortBy (\l r -> orderToOrdering $ compare (f l) (f r))
+sortBy :: Ord comparable => (a -> comparable) -> List a -> List a
+sortBy f = Data.List.sortBy (\l r -> compare (f l) (f r))
 
 {-| Sort values with a custom comparison function.
     sortWith flippedComparison [1,2,3,4,5] == [5,4,3,2,1]
@@ -383,8 +383,8 @@ sortBy f = Data.List.sortBy (\l r -> orderToOrdering $ compare (f l) (f r))
 This is also the most general sort function, allowing you
 to define any other: `sort == sortWith compare`
 -}
-sortWith :: (a -> a -> Order) -> List a -> List a
-sortWith f = Data.List.sortBy (\l r -> orderToOrdering $ f l r)
+sortWith :: (a -> a -> Ordering) -> List a -> List a
+sortWith = Data.List.sortBy
 
 -- DECONSTRUCT
 {-| Determine if a list is empty.

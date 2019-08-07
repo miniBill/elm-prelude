@@ -6,7 +6,7 @@ module Prelude
   , IO
   , List
   , Maybe(..)
-  , Order(..)
+  , Ordering(..)
   , String
   , (-)
   , (.)
