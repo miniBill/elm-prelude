@@ -10,17 +10,13 @@ module Protolude
   , List
   , Maybe(..)
   , Never
-  , Number
+  , Number(..)
   , Ordering(..)
-  , (-)
   , (.)
-  , (*)
   , (/)
   , (//)
   , (&)
   , (&&)
-  , (^)
-  , (+)
   , (||)
   , ($)
   , abs
@@ -35,14 +31,12 @@ module Protolude
   , degrees
   , e
   , floor
-  , fromInteger
   , fromPolar
   , identity
   , isInfinite
   , isNaN
   , logBase
   , modBy
-  , negate
   , never
   , not
   , pi
@@ -60,25 +54,10 @@ module Protolude
   ) where
 
 import           Kernel (Appendable, Bool (..), Char, Eq (..), IO, List,
-                         Maybe (..), Number, Ord (..), Ordering (..), max, min,
-                         ($), (&), (&&), (.), (||))
+                         Maybe (..), Number (..), Ord (..), Ordering (..), max,
+                         min, ($), (&), (&&), (.), (||))
 import           Kernel (fromInteger)
 import qualified Kernel
-
-infixl 6 +
-
-(+) :: Number a => a -> a -> a
-(+) = add
-
-infixl 6 -
-
-(-) :: Number a => a -> a -> a
-(-) = sub
-
-infixl 7 *
-
-(*) :: Number a => a -> a -> a
-(*) = mul
 
 infixl 7 /
 
@@ -89,11 +68,6 @@ infixl 7 //
 
 (//) :: Int -> Int -> Int
 (//) = idiv
-
-infixr 8 ^
-
-(^) :: Number a => a -> a -> a
-(^) = pow
 
 -- MATHEMATICS
 {-| An `Int` is a whole number. Valid syntax for integers includes:
@@ -138,38 +112,6 @@ compatible with any widely-used assembly language.
 -}
 type Float = Kernel.Float
 
-{-| Add two numbers. The `number` type variable means this operation can be
-specialized to `Int -> Int -> Int` or to `Float -> Float -> Float`. So you
-can do things like this:
-    3002 + 4004 == 7006  -- all ints
-    3.14 + 3.14 == 6.28  -- all floats
-You _cannot_ add an `Int` and a `Float` directly though. Use functions like
-[toFloat](#toFloat) or [round](#round) to convert both values to the same type.
-So if you needed to add a list length to a `Float` for some reason, you
-could say one of these:
-    3.14 + toFloat (List.length [1,2,3]) == 6.14
-    round 3.14 + List.length [1,2,3]     == 6
-**Note:** Languages like Java and JavaScript automatically convert `Int` values
-to `Float` values when you mix and match. This can make it difficult to be sure
-exactly what type of number you are dealing with. When you try to _infer_ these
-conversions (as Scala does) it can be even more confusing. Elm has opted for a
-design that makes all conversions explicit.
--}
-add :: Number number => number -> number -> number
-add = Kernel.add
-
-{-| Subtract numbers like `4 - 3 == 1`.
-See [`(+)`](#+) for docs on the `number` type variable.
--}
-sub :: Number number => number -> number -> number
-sub = Kernel.sub
-
-{-| Multiply numbers like `2 * 3 == 6`.
-See [`(+)`](#+) for docs on the `number` type variable.
--}
-mul :: Number number => number -> number -> number
-mul = Kernel.mul
-
 {-| Floating-point division:
     3.14 / 2 == 1.57
 -}
@@ -182,13 +124,6 @@ Notice that the remainder is discarded.
 -}
 idiv :: Int -> Int -> Int
 idiv = Kernel.idiv
-
-{-| Exponentiation
-    3^2 == 9
-    3^3 == 27
--}
-pow :: Number number => number -> number -> number
-pow = Kernel.pow
 
 -- INT TO FLOAT / FLOAT TO INT
 {-| Convert an integer into a float. Useful when mixing `Int` and `Float`
@@ -305,14 +240,6 @@ information.
 remainderBy :: Int -> Int -> Int
 remainderBy = Kernel.remainderBy
 
-{-| Negate a number.
-    negate 42 == -42
-    negate -42 == 42
-    negate 0 == 0
--}
-negate :: Number number => number -> number
-negate n = Kernel.negate n
-
 {-| Get the [absolute value][abs] of a number.
     abs 16   == 16
     abs -4   == 4
@@ -372,13 +299,13 @@ radians angleInRadians = angleInRadians
     degrees 180 == 3.141592653589793
 -}
 degrees :: Float -> Float
-degrees angleInDegrees = fdiv (mul angleInDegrees pi) 180
+degrees angleInDegrees = angleInDegrees * pi / 180
 
 {-| Convert turns to standard Elm angles (radians). One turn is equal to 360°.
     turns (1/2) == 3.141592653589793
 -}
 turns :: Float -> Float
-turns angleInTurns = mul (mul 2 pi) angleInTurns
+turns angleInTurns = 2 * pi * angleInTurns
 
 -- TRIGONOMETRY
 {-| An approximation of pi.
@@ -459,14 +386,14 @@ atan2 = Kernel.atan2
     fromPolar (sqrt 2, degrees 45) == (1, 1)
 -}
 fromPolar :: (Float, Float) -> (Float, Float)
-fromPolar (radius, theta) = (mul radius (cos theta), mul radius (sin theta))
+fromPolar (radius, theta) = (radius * cos theta, radius * sin theta)
 
 {-| Convert Cartesian coordinates (x,y) to polar coordinates (r,&theta;).
     toPolar (3, 4) == ( 5, 0.9272952180016122)
     toPolar (5,12) == (13, 1.1760052070951352)
 -}
 toPolar :: (Float, Float) -> (Float, Float)
-toPolar (x, y) = (sqrt (add (mul x x) (mul y y)), atan2 y x)
+toPolar (x, y) = (sqrt (x * x + y * y), atan2 y x)
 
 -- CRAZY FLOATS
 {-| Determine whether a float is an undefined or unrepresentable number.

@@ -72,29 +72,37 @@ class Appendable a where
 instance Appendable [a] where
   (++) = (P.++)
 
+infixl 6 +
+
+infixl 6 -
+
+infixl 7 *
+
+infixr 8 ^
+
 class Ord a =>
       Number a
   where
-  add :: a -> a -> a
-  mul :: a -> a -> a
-  sub :: a -> a -> a
-  pow :: a -> a -> a
+  (+) :: a -> a -> a
+  (-) :: a -> a -> a
+  (*) :: a -> a -> a
+  (^) :: a -> a -> a
   negate :: a -> a
   fromInteger :: Int -> a
 
 instance Number Int where
-  add = (P.+)
-  mul = Hack.mul
-  sub = (P.-)
-  pow = (P.^)
+  (+) = (P.+)
+  (-) = (P.-)
+  (*) = Hack.mul
+  (^) = (P.^)
   negate = P.negate
   fromInteger i = i
 
 instance Number Float where
-  add = (P.+)
-  mul = Hack.mul
-  sub = (P.-)
-  pow = (P.**)
+  (+) = (P.+)
+  (-) = (P.-)
+  (*) = Hack.mul
+  (^) = (P.**)
   negate = P.negate
   fromInteger = P.fromInteger
 

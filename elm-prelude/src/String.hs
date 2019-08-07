@@ -37,7 +37,7 @@ fromList :: List Char -> String
 fromList = String . T.pack
 
 padRight :: Int -> Char -> String -> String
-padRight w c s = concat [s, fromList $ List.repeat (sub w $ length s) c]
+padRight w c s = concat [s, fromList $ List.repeat (w - length s) c]
 
 left :: Int -> String -> String
 left i = lift (T.take (P.fromIntegral i))
