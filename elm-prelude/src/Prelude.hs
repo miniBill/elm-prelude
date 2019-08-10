@@ -85,27 +85,41 @@ module Prelude
   , Number
   ) where
 
+import           Kernel (Appendable, Bool (..), Eq, IO, List, Maybe (..),
+                         Number (..), Ord, Ordering (..), String, ($), (&), (.))
 import qualified Kernel
-import Kernel (Bool(..), Appendable, Eq, Maybe(..), IO, String, List, Number(..), Ordering(..), Ord, (.), (&), ($))
 
 infixl 6 +
+
 infixl 6 -
+
 infixl 7 *
+
 infixr 8 ^
+
 infixl 7 /
+
 infixl 7 //
+
 infix 4 ==
+
 infix 4 /=
+
 infix 4 <
+
 infix 4 >
+
 infix 4 <=
+
 infix 4 >=
+
 infixr 3 &&
+
 infixr 3 ||
+
 infixr 5 ++
 
 -- MATHEMATICS
-
 -- | An @Int@ is a whole number. Valid syntax for integers includes:
 --
 -- > 0
@@ -144,7 +158,6 @@ type Int = Kernel.Int
 -- That means if you think @NaN@ is weird, you must successfully overtake
 -- Intel and AMD with a chip that is not backwards compatible with any
 -- widely-used assembly language.
-
 type Float = Kernel.Float
 
 -- | Add two numbers. The @number@ type variable means this operation can be
@@ -214,7 +227,6 @@ type Float = Kernel.Float
 (^) = Kernel.pow
 
 -- INT TO FLOAT / FLOAT TO INT
-
 -- | Convert an integer into a float. Useful when mixing @Int@ and @Float@
 -- values like this:
 --
@@ -301,7 +313,6 @@ truncate :: Float -> Int
 truncate = Kernel.truncate
 
 -- EQUALITY
-
 -- | Check if values are "the same".
 --
 -- __Note:__ Haskell uses structural equality on tuples, records, and user-defined
@@ -324,7 +335,6 @@ truncate = Kernel.truncate
 (/=) = (Kernel./=)
 
 -- COMPARISON
-
 -- $comparison
 --
 -- These functions only work on @comparable@ types. This includes numbers,
@@ -333,23 +343,17 @@ truncate = Kernel.truncate
 --
 -- __@elm-prelude@ Note:__ These functions use Haskell's @Ord@ typeclass
 -- instead of Elm's @comparable@ constraint.
-
-
 (<) :: Ord comparable => comparable -> comparable -> Bool
 (<) = (Kernel.<)
-
 
 (>) :: Ord comparable => comparable -> comparable -> Bool
 (>) = (Kernel.>)
 
-
 (<=) :: Ord comparable => comparable -> comparable -> Bool
 (<=) = (Kernel.<=)
 
-
 (>=) :: Ord comparable => comparable -> comparable -> Bool
 (>=) = (Kernel.>=)
-
 
 -- | Find the smaller of two comparables.
 --
@@ -359,8 +363,9 @@ truncate = Kernel.truncate
 -- "abc"
 min :: Ord comparable => comparable -> comparable -> comparable
 min x y =
-  if x < y then x else y
-
+  if x < y
+    then x
+    else y
 
 -- | Find the larger of two comparables.
 --
@@ -370,7 +375,9 @@ min x y =
 -- "xyz"
 max :: Ord comparable => comparable -> comparable -> comparable
 max x y =
-  if x > y then x else y
+  if x > y
+    then x
+    else y
 
 -- | Compare any two comparable values. Comparable values include @String@,
 -- @Char@, @Int@, @Float@, or a list or tuple containing comparable values. These
@@ -385,9 +392,7 @@ max x y =
 compare :: Ord comparable => comparable -> comparable -> Ordering
 compare = Kernel.compare
 
-
 -- BOOLEANS
-
 -- | Negate a boolean value.
 --
 -- >>> not True
@@ -395,9 +400,8 @@ compare = Kernel.compare
 -- >>> not False
 -- True
 not :: Bool -> Bool
-not True = False
+not True  = False
 not False = True
-
 
 -- | The logical AND operator. @True@ if both inputs are @True@.
 --
@@ -417,7 +421,6 @@ not False = True
 False && ~_ = False
 True && b = b
 
-
 -- | The logical OR operator. @True@ if one or both inputs are @True@.
 --
 -- >>> True  || True
@@ -436,7 +439,6 @@ True && b = b
 True || ~_ = True
 False || b = b
 
-
 -- | The exclusive-or operator. @True@ if exactly one input is @True@.
 --
 -- >>> xor True  True
@@ -450,10 +452,7 @@ False || b = b
 xor :: Bool -> Bool -> Bool
 xor = (/=)
 
-
 -- APPEND
-
-
 -- | Put two appendable things together. This includes strings, lists, and text.
 --
 -- >>> "hello" ++ "world"
@@ -463,10 +462,7 @@ xor = (/=)
 (++) :: Appendable appendable => appendable -> appendable -> appendable
 (++) = (Kernel.++)
 
-
 -- FANCIER MATH
-
-
 -- | Perform [modular arithmetic](https://en.wikipedia.org/wiki/Modular_arithmetic).
 -- A common trick is to use (n mod 2) to detect even and odd numbers:
 --
@@ -513,7 +509,6 @@ remainderBy = Kernel.remainderBy
 negate :: Number number => number -> number
 negate = Kernel.neg
 
-
 -- | Get the [absolute value](https://en.wikipedia.org/wiki/Absolute_value)
 -- of a number.
 --
@@ -527,8 +522,9 @@ negate = Kernel.neg
 -- 3.14
 abs :: Number number => number -> number
 abs n =
-  if n < fromInteger 0 then Kernel.neg n else n
-
+  if n < fromInteger 0
+    then Kernel.neg n
+    else n
 
 -- | Clamps a number within a given range. With the expression
 -- @clamp 100 200 x@ the results are as follows:
@@ -538,13 +534,11 @@ abs n =
 -- > 200     if 200 <= x
 clamp :: Number number => number -> number -> number -> number
 clamp low high number =
-  if number < low then
-    low
-  else if number > high then
-    high
-  else
-    number
-
+  if number < low
+    then low
+    else if number > high
+           then high
+           else number
 
 -- | Take the square root of a number.
 --
@@ -559,7 +553,6 @@ clamp low high number =
 sqrt :: Float -> Float
 sqrt = Kernel.sqrt
 
-
 -- | Calculate the logarithm of a number with a given base.
 --
 -- >>> logBase 10 100
@@ -567,51 +560,38 @@ sqrt = Kernel.sqrt
 -- >>> logBase 2 256
 -- 8
 logBase :: Float -> Float -> Float
-logBase base number =
-  Kernel.log number / Kernel.log base
-
+logBase base number = Kernel.log number / Kernel.log base
 
 -- | Exponentiation
 exp :: Float -> Float
 exp = Kernel.exp
 
-
 -- ANGLES
-
 -- | Convert radians to standard Elm angles (radians).
 --
 -- >>> radians pi
 -- 3.141592653589793
 radians :: Float -> Float
-radians angleInRadians =
-  angleInRadians
-
+radians angleInRadians = angleInRadians
 
 -- | Convert degrees to standard Elm angles (radians).
 --
 -- >>> degrees 180
 -- 3.141592653589793
 degrees :: Float -> Float
-degrees angleInDegrees =
-  angleInDegrees * pi / 180.0
-
+degrees angleInDegrees = angleInDegrees * pi / 180.0
 
 -- | Convert turns to standard Elm angles (radians). One turn is equal to 360°.
 --
 -- >>> turns (1/2)
 -- 3.141592653589793
 turns :: Float -> Float
-turns angleInTurns =
-  2 * pi * angleInTurns
-
+turns angleInTurns = 2 * pi * angleInTurns
 
 -- TRIGONOMETRY
-
 -- | An approximation of pi.
 pi :: Float
-pi =
-  Kernel.pi
-
+pi = Kernel.pi
 
 -- | Figure out the cosine given an angle in radians.
 --
@@ -624,9 +604,7 @@ pi =
 -- >>> cos (pi/3)
 -- 0.5000000000000001
 cos :: Float -> Float
-cos =
-  Kernel.cos
-
+cos = Kernel.cos
 
 -- | Figure out the sine given an angle in radians.
 --
@@ -639,9 +617,7 @@ cos =
 -- >>> sin (pi/6)
 -- 0.49999999999999994
 sin :: Float -> Float
-sin =
-  Kernel.sin
-
+sin = Kernel.sin
 
 -- | Figure out the tangent given an angle in radians.
 --
@@ -654,27 +630,21 @@ sin =
 -- >>> tan (pi/4)
 -- 0.9999999999999999
 tan :: Float -> Float
-tan =
-  Kernel.tan
-
+tan = Kernel.tan
 
 -- | Figure out the arccosine for @adjacent / hypotenuse@ in radians:
 --
 -- >>> acos (1/2)
 -- 1.0471975511965979 -- 60° or pi/3 radians
 acos :: Float -> Float
-acos =
-  Kernel.acos
-
+acos = Kernel.acos
 
 -- | Figure out the arcsine for @opposite / hypotenuse@ in radians:
 --
 -- >>> asin (1/2)
 -- 0.5235987755982989 -- 30° or pi/6 radians
 asin :: Float -> Float
-asin =
-  Kernel.asin
-
+asin = Kernel.asin
 
 -- | This helps you find the angle (in radians) to an @(x,y)@ coordinate, but
 -- in a way that is rarely useful in programming. __You probably want__
@@ -698,9 +668,7 @@ asin =
 -- for figuring out angles in any sort of visualization, so again, check out
 -- 'atan2' instead!
 atan :: Float -> Float
-atan =
-  Kernel.atan
-
+atan = Kernel.atan
 
 -- | This helps you find the angle (in radians) to an @(x,y)@ coordinate.
 -- So rather than saying @atan (y/x)@ you say @atan2 y x@ and you can get a full
@@ -715,23 +683,15 @@ atan =
 -- >>> atan2 -1  1
 -- -0.7853981633974483 -- 315° or 7*pi/4 radians
 atan2 :: Float -> Float -> Float
-atan2 =
-  Kernel.atan2
-
+atan2 = Kernel.atan2
 
 -- POLAR COORDINATES
-
-
 -- | Convert polar coordinates (r,&#x3b8;) to Cartesian coordinates (x,y).
 --
 -- >>> fromPolar (sqrt 2, degrees 45)
 -- (1, 1)
-fromPolar :: (Float,Float) -> (Float,Float)
-fromPolar (radius, theta) =
-  ( radius * cos theta
-  , radius * sin theta
-  )
-
+fromPolar :: (Float, Float) -> (Float, Float)
+fromPolar (radius, theta) = (radius * cos theta, radius * sin theta)
 
 -- | Convert Cartesian coordinates (x,y) to polar coordinates (r,&#x3b8;).
 --
@@ -739,17 +699,10 @@ fromPolar (radius, theta) =
 -- ( 5, 0.9272952180016122)
 -- >>> toPolar (5,12)
 -- (13, 1.1760052070951352)
-toPolar :: (Float,Float) -> (Float,Float)
-toPolar ( x, y ) =
-  ( sqrt (x * x + y * y)
-  , atan2 y x
-  )
-
-
+toPolar :: (Float, Float) -> (Float, Float)
+toPolar (x, y) = (sqrt (x * x + y * y), atan2 y x)
 
 -- CRAZY FLOATS
-
-
 -- | Determine whether a float is an undefined or unrepresentable number.
 -- NaN stands for /not a number/ and it is [a standardized part of floating point
 -- numbers](https://en.wikipedia.org/wiki/NaN).
@@ -763,9 +716,7 @@ toPolar ( x, y ) =
 -- >>> isNaN 1
 -- False
 isNaN :: Float -> Bool
-isNaN =
-  Kernel.isNaN
-
+isNaN = Kernel.isNaN
 
 -- | Determine whether a float is positive or negative infinity.
 --
@@ -781,18 +732,13 @@ isNaN =
 -- Notice that NaN is not infinite! For float @n@ to be finite implies that
 -- @not (isInfinite n || isNaN n)@ evaluates to @True@.
 isInfinite :: Float -> Bool
-isInfinite =
-  Kernel.isInfinite
-
+isInfinite = Kernel.isInfinite
 
 -- FUNCTION HELPERS
-
 -- | Given a value, returns exactly the same value. This is called
 -- [the identity function](https://en.wikipedia.org/wiki/Identity_function).
 identity :: a -> a
-identity x =
-  x
-
+identity x = x
 
 -- | Create a function that /always/ returns the same value. Useful with
 -- functions like @map@:
@@ -801,9 +747,7 @@ identity x =
 -- > -- List.map (\_ -> 0) [1,2,3,4,5] == [0,0,0,0,0]
 -- > -- always = (\x _ -> x)
 always :: a -> b -> a
-always a _ =
-  a
-
+always a _ = a
 
 -- | A value that can never happen! For context:
 --
@@ -822,8 +766,8 @@ always a _ =
 -- API can only accept widgets without event handlers, so I require @CLI Never@ and
 -- users can give @CLI msg@ and everything will go fine. Generally speaking, you
 -- do not want @Never@ in your return types though.
-data Never = JustOneMore Never
-
+data Never =
+  JustOneMore Never
 
 -- | A function that can never be called. Seems extremely pointless, but it
 -- /can/ come in handy. Imagine you have some widget that should never produce any
@@ -841,6 +785,4 @@ data Never = JustOneMore Never
 -- So the @never@ function is basically telling the type system, make sure no one
 -- ever calls me!
 never :: Never -> a
-never (JustOneMore nvr) =
-  never nvr
-
+never (JustOneMore nvr) = never nvr
