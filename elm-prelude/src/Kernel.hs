@@ -1,3 +1,4 @@
+{-# LANGUAGE MagicHash            #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE PackageImports       #-}
 {-# LANGUAGE TypeSynonymInstances #-}
@@ -51,19 +52,15 @@ module Kernel
   , xor
   ) where
 
-import           Data.Function  ((&))
-import qualified Data.Text      as T
-import qualified Hack
-import           "base" Prelude (Bool (..), Char, Eq (..), Maybe (..),
-                                 Monad (..), Ord (..), Ordering, Show (..),
-                                 fromIntegral, not, ($), (&&), (.), (||))
-import qualified "base" Prelude as P
+import qualified Data.Text     as T
+import qualified GHC.Prim      as P
+import           GHC.Types     (Bool (..), Char, Ordering)
 
 type IO a = P.IO a
 
-type Int = P.Integer
+type Int = P.Int#
 
-type Float = P.Float
+type Float = P.Float#
 
 type List a = [a]
 
@@ -91,18 +88,18 @@ class Ord a =>
   fromInteger :: Int -> a
 
 instance Number Int where
-  add = (P.+)
-  sub = (P.-)
-  mul = Hack.mul
+  add = (P.+#)
+  sub = (P.-#)
+  mul = (P.*#)
   pow = (P.^)
   neg = P.negate
   fromInteger i = i
 
 instance Number Float where
-  add = (P.+)
-  sub = (P.-)
-  mul = Hack.mul
-  pow = (P.**)
+  add = P.plusFloat#
+  sub = P.minusFloat#
+  mul = P.timesFloat#
+  pow b e = P.expFloat# (P.timesFloat# e (P.logFloat# b))
   neg = P.negate
   fromInteger = P.fromInteger
 

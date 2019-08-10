@@ -35,7 +35,6 @@ library:
   - String
   - Tuple
   other-modules:
-  - Hack
   - Kernel
   default-extensions:
   - Strict
@@ -49,7 +48,7 @@ library:
   - -Wincomplete-uni-patterns
   - -Wredundant-constraints
   dependencies:
-  - base >= 4.7 && < 5
+  - ghc-prim >=0.5 && <0.6
   - containers >=0.5 && <0.7
   - text >=1.2 && <1.3
 
