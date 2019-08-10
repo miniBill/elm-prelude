@@ -35,7 +35,6 @@ library:
   - String
   - Tuple
   other-modules:
-  - Hack
   - Kernel
   default-extensions:
   - Strict

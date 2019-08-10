@@ -53,7 +53,6 @@ module Kernel
 
 import           Data.Function  ((&))
 import qualified Data.Text      as T
-import qualified Hack
 import           "base" Prelude (Bool (..), Char, Eq (..), Maybe (..),
                                  Monad (..), Ord (..), Ordering, Show (..),
                                  fromIntegral, not, ($), (&&), (.), (||))
@@ -93,7 +92,7 @@ class Ord a =>
 instance Number Int where
   add = (P.+)
   sub = (P.-)
-  mul = Hack.mul
+  mul = (P.*)
   pow = (P.^)
   neg = P.negate
   fromInteger i = i
@@ -101,7 +100,7 @@ instance Number Int where
 instance Number Float where
   add = (P.+)
   sub = (P.-)
-  mul = Hack.mul
+  mul = (P.*)
   pow = (P.**)
   neg = P.negate
   fromInteger = P.fromInteger
