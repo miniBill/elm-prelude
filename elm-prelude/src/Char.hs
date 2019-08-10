@@ -1,9 +1,16 @@
 module Char
-  ( toUpper
+  ( Char
+  , toLower
+  , toUpper
   ) where
 
 import qualified Data.Char
-import           Protolude
+import           Kernel    (Char)
 
+{-| Convert to lower case. -}
+toLower :: Char -> Char
+toLower = Data.Char.toLower
+
+{-| Convert to upper case. -}
 toUpper :: Char -> Char
 toUpper = Data.Char.toUpper

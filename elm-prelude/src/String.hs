@@ -10,10 +10,11 @@ module String
   , toList
   ) where
 
+import           Char        (Char)
 import qualified Data.String
 import qualified Data.Text   as T
+import           Kernel      (fromIntegral, show)
 import qualified List
-import           Protolude
 
 fromList :: List Char -> String
 fromList = Data.String.fromString

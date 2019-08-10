@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE PackageImports    #-}
 
 module Hack

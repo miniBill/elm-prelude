@@ -11,8 +11,8 @@ module Color
   , white
   ) where
 
+import           Char   (Char)
 import qualified List
-import           Protolude
 import qualified String
 
 data Color =

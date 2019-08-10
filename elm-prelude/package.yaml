@@ -28,7 +28,6 @@ library:
   source-dirs: src
   exposed-modules:
   - Char
-  - Color
   - Compat
   - Dict
   - List
@@ -40,12 +39,10 @@ library:
   other-modules:
   - Hack
   - Kernel
-  - Protolude
   default-extensions:
   - Strict
   - StrictData
   - OverloadedStrings
-  - NoImplicitPrelude
   ghc-options:
   - -Wall
   - -Werror

@@ -1,4 +1,4 @@
-{-# LANGUAGE NoRebindableSyntax   #-}
+{-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE PackageImports       #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
@@ -28,7 +28,7 @@ module Kernel
   , atan2
   , ceiling
   , cos
-  , e
+  , exp
   , fdiv
   , floor
   , fromIntegral
@@ -80,38 +80,30 @@ instance Appendable [a] where
 instance Appendable String where
   (++) = T.append
 
-infixl 6 +
-
-infixl 6 -
-
-infixl 7 *
-
-infixr 8 ^
-
 class Ord a =>
       Number a
   where
-  (+) :: a -> a -> a
-  (-) :: a -> a -> a
-  (*) :: a -> a -> a
-  (^) :: a -> a -> a
-  negate :: a -> a
+  add :: a -> a -> a
+  sub :: a -> a -> a
+  mul :: a -> a -> a
+  pow :: a -> a -> a
+  neg :: a -> a
   fromInteger :: Int -> a
 
 instance Number Int where
-  (+) = (P.+)
-  (-) = (P.-)
-  (*) = Hack.mul
-  (^) = (P.^)
-  negate = P.negate
+  add = (P.+)
+  sub = (P.-)
+  mul = Hack.mul
+  pow = (P.^)
+  neg = P.negate
   fromInteger i = i
 
 instance Number Float where
-  (+) = (P.+)
-  (-) = (P.-)
-  (*) = Hack.mul
-  (^) = (P.**)
-  negate = P.negate
+  add = (P.+)
+  sub = (P.-)
+  mul = Hack.mul
+  pow = (P.**)
+  neg = P.negate
   fromInteger = P.fromInteger
 
 fdiv :: Float -> Float -> Float
@@ -156,8 +148,8 @@ log = P.log
 logBase :: Float -> Float -> Float
 logBase = P.logBase
 
-e :: Float
-e = P.exp 1
+exp :: Float -> Float
+exp = P.exp
 
 pi :: Float
 pi = P.pi

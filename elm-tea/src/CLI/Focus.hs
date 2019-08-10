@@ -15,9 +15,9 @@ import qualified Maybe
 initialFocus :: CLI msg -> Maybe Focus
 initialFocus widget =
   let childrenFocus children =
+        children &
         List.indexedMap
-          (\i child -> initialFocus child & Maybe.map (ChildFocus i))
-          children &
+          (\i child -> initialFocus child & Maybe.map (ChildFocus i)) &
         List.filterMap identity &
         List.head
    in case widget of
@@ -30,9 +30,9 @@ initialFocus widget =
 finalFocus :: CLI msg -> Maybe Focus
 finalFocus widget =
   let childrenFocus children =
+        children &
         List.indexedMap
-          (\i child -> finalFocus child & Maybe.map (ChildFocus i))
-          children &
+          (\i child -> finalFocus child & Maybe.map (ChildFocus i)) &
         List.filterMap identity &
         List.reverse &
         List.head
@@ -92,7 +92,7 @@ previousFocus =
 getFocusPosition :: CLI msg -> Focus -> Maybe (Int, Int)
 getFocusPosition =
   let containerFocus layout alignment children i cfocus =
-        Layout.childrenPositions layout alignment children & List.drop i &
+        children & Layout.childrenPositions layout alignment & List.drop i &
         List.head &
         Maybe.andThen
           (\((cx, cy), child) ->

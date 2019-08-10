@@ -134,7 +134,7 @@ map5 ::
   -> Maybe d
   -> Maybe e
   -> Maybe value
-map5 func ma mb mc md me =
+map5 func ma mb mc md mf =
   case ma of
     Nothing -> Nothing
     Just a ->
@@ -147,9 +147,9 @@ map5 func ma mb mc md me =
               case md of
                 Nothing -> Nothing
                 Just d ->
-                  case me of
+                  case mf of
                     Nothing -> Nothing
-                    Just e  -> Just (func a b c d e)
+                    Just f  -> Just (func a b c d f)
 
 {-| Chain together many computations that may fail. It is helpful to see its
 definition:
