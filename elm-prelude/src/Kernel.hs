@@ -16,6 +16,7 @@ module Kernel
   , Number(..)
   , Ord(..)
   , Ordering(..)
+  , Show(..)
   , String
   , (.)
   , (&)
@@ -42,7 +43,6 @@ module Kernel
   , pi
   , remainderBy
   , round
-  , show
   , sin
   , sqrt
   , tan
@@ -79,7 +79,9 @@ instance Appendable [a] where
 instance Appendable String where
   (++) = T.append
 
-class Ord a =>
+default (P.Integer)
+
+class (Ord a, P.Num a) =>
       Number a
   where
   add :: a -> a -> a

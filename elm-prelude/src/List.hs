@@ -38,7 +38,6 @@ module List
   ) where
 
 import qualified Data.List
-import qualified Kernel
 
 {-| You can create a `List` in HaskElm with the `[1,2,3]` syntax, so lists are
 used all over the place. This module has a bunch of functions to help you work
@@ -251,13 +250,13 @@ minimum list =
     sum [1,2,3,4] == 10
 -}
 sum :: Number number => List number -> number
-sum numbers = foldl (+) (Kernel.fromInteger 0) numbers
+sum numbers = foldl (+) 0 numbers
 
 {-| Get the product of the list elements.
     product [1,2,3,4] == 24
 -}
 product :: Number number => List number -> number
-product numbers = foldl (*) (Kernel.fromInteger 1) numbers
+product numbers = foldl (*) 1 numbers
 
 -- COMBINE
 {-| Put two lists together.

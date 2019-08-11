@@ -7,6 +7,7 @@ module String
   , left
   , length
   , padRight
+  , repeat
   , toList
   ) where
 
@@ -42,3 +43,10 @@ left = T.take . fromIntegral
 
 dropLeft :: Int -> String -> String
 dropLeft = T.drop . fromIntegral
+
+-- | Repeat a string /n/ times.
+--
+-- >>> repeat 3 "ha"
+-- "hahaha"
+repeat :: Int -> String -> String
+repeat = T.replicate . fromIntegral

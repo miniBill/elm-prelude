@@ -2,8 +2,8 @@
 
 {-| Tons of useful functions that get imported by default. -}
 module Prelude
-  ( -- * Math
-    Int
+    -- * Math
+  ( Int
   , Float
   , (+)
   , (-)
@@ -30,7 +30,7 @@ module Prelude
   , max
   , min
   , compare
-  , Ordering
+  , Ordering(..)
   -- * Booleans
   , Bool(..)
   , not

@@ -55,11 +55,15 @@ library:
 tests:
   elm-prelude-test:
     main:                Spec.hs
+    other-modules: 
+    - Test.Basics
+    - Test.Utils
     source-dirs:         test
     default-extensions:
     - Strict
     - StrictData
     - OverloadedStrings
+    - ExtendedDefaultRules
     ghc-options:
     - -Wall
     - -Werror
@@ -70,5 +74,8 @@ tests:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    - -Wno-type-defaults
     dependencies:
     - elm-prelude
+    - QuickCheck >=2.13 && <3.0
+    - test-invariant >=0.4 && <0.5
