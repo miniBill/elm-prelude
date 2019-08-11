@@ -95,11 +95,17 @@ displayRow alignment attr children =
         let childPicture = displayWidget attr child
             (cwidth, cheight) = imageSize childPicture
             missing = pad alignment height cheight
-            tpad = Vty.charFill attr ' ' cwidth missing
-            bpad = Vty.charFill attr ' ' cwidth (height - cheight - missing)
+            tpad =
+              Vty.backgroundFill
+                (Compat.fromIntegral cwidth)
+                (Compat.fromIntegral missing)
+            bpad =
+              Vty.backgroundFill
+                (Compat.fromIntegral cwidth)
+                (Compat.fromIntegral $ height - cheight - missing)
          in Vty.vertCat [tpad, childPicture, bpad]
    in Vty.horizCat $
-      List.map displayPadded $ List.intersperse (Text " ") children
+      List.map displayPadded $ List.intersperse (Text "") children
 
 displayColumn :: AlignmentType -> Attr -> List (CLI msg) -> Image
 displayColumn alignment attr children =
@@ -109,11 +115,16 @@ displayColumn alignment attr children =
         let childPicture = displayWidget attr child
             (cwidth, cheight) = imageSize childPicture
             missing = pad alignment width cwidth
-            lpad = Vty.charFill attr ' ' missing cheight
-            rpad = Vty.charFill attr ' ' (width - cwidth - missing) cheight
+            lpad =
+              Vty.backgroundFill
+                (Compat.fromIntegral missing)
+                (Compat.fromIntegral cheight)
+            rpad =
+              Vty.backgroundFill
+                (Compat.fromIntegral $ width - cwidth - missing)
+                (Compat.fromIntegral cheight)
          in Vty.horizCat [lpad, childPicture, rpad]
-   in Vty.vertCat $
-      List.map displayPadded $ List.intersperse (Text " ") children
+   in Vty.vertCat $ List.map displayPadded $ List.intersperse (Text "") children
 
 toVtyColor :: Color -> Vty.Color
 toVtyColor c =
