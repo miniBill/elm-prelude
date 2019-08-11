@@ -522,7 +522,7 @@ negate = Kernel.neg
 -- 3.14
 abs :: Number number => number -> number
 abs n =
-  if n < fromInteger 0
+  if n < 0
     then Kernel.neg n
     else n
 
