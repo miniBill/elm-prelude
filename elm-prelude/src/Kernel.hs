@@ -6,6 +6,7 @@ module Kernel
   ( Appendable(..)
   , Bool(..)
   , Char
+  , Either(..)
   , Eq(..)
   , Float
   , Int
@@ -53,9 +54,10 @@ module Kernel
 
 import           Data.Function  ((&))
 import qualified Data.Text      as T
-import           "base" Prelude (Bool (..), Char, Eq (..), Maybe (..),
-                                 Monad (..), Ord (..), Ordering, Show (..),
-                                 fromIntegral, not, ($), (&&), (.), (||))
+import           "base" Prelude (Bool (..), Char, Either (..), Eq (..),
+                                 Maybe (..), Monad (..), Ord (..), Ordering,
+                                 Show (..), fromIntegral, not, ($), (&&), (.),
+                                 (||))
 import qualified "base" Prelude as P
 
 type IO a = P.IO a

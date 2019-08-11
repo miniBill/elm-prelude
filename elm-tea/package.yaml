@@ -27,14 +27,16 @@ library:
   dependencies:
   - vty >=5.0 && <6.0
   exposed-modules:
-  - Color
   - CLI
   - CLI.Attributes
   - CLI.Layout
   - CLI.Types
+  - Cmd
+  - Color
+  - Sub
+  - CLI.Types.Internal
   other-modules:
   - CLI.Focus
-  - CLI.Types.Internal
   default-extensions:
   - Strict
   - StrictData
@@ -46,28 +48,6 @@ library:
   - -Wincomplete-record-updates
   - -Wincomplete-uni-patterns
   - -Wredundant-constraints
-
-executables:
-  elm-tea:
-    main: Form.hs
-    source-dirs: app
-    other-modules: []
-    default-extensions:
-    - Strict
-    - StrictData
-    - OverloadedStrings
-    ghc-options:
-    - -Wall
-    - -Werror
-    - -Wcompat
-    - -Wincomplete-record-updates
-    - -Wincomplete-uni-patterns
-    - -Wredundant-constraints
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - elm-tea
 
 tests:
   elm-tea-test:

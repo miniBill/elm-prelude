@@ -2,9 +2,11 @@ module CLI.Types
   ( AlignmentType(..)
   , Attribute(..)
   , CLI(..)
+  , Cmd
   , InputType(..)
   , LayoutType(..)
   , Program(..)
+  , Sub
   , attributes
   , border
   , button
@@ -14,7 +16,8 @@ module CLI.Types
   , text
   ) where
 
-import           Color (Color)
+import           CLI.Types.Internal (Cmd, Sub)
+import           Color              (Color)
 
 data Attribute msg
   = OnClick msg
@@ -43,9 +46,10 @@ data InputType
 
 data Program flags model msg =
   Program
-    (flags -> model)
+    (flags -> (model, Cmd msg))
     (model -> CLI msg)
-    (msg -> model -> (model, IO (List msg)))
+    (msg -> model -> (model, Cmd msg))
+    (model -> Sub msg)
 
 attributes :: List (Attribute msg) -> CLI msg -> CLI msg
 attributes = Attributes

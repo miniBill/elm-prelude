@@ -1,6 +1,6 @@
-name:                elm-http
+name:                elm-tea-example
 version:             0.1.0.0
-github:              "miniBill/elm-http"
+github:              "miniBill/elm-tea-example"
 license:             BSD3
 author:              "Leonardo Taglialegne"
 maintainer:          "cmt.miniBill@gmail.com"
@@ -17,38 +17,15 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/miniBill/elm-http#readme>
+description:         Please see the README on GitHub at <https://github.com/miniBill/elm-tea-example#readme>
 
 dependencies:
 - elm-prelude >=0.1 && <0.2
 
-library:
-  source-dirs: src
-  dependencies:
-  - http-client >=0.6 && <0.7
-  - http-client-tls >=0.3 && <0.4
-  - text >=1.2 && <1.3
-  - bytestring >=0.10 && <0.11
-  - elm-tea >=0.1 && <0.2
-  exposed-modules:
-  - Http
-  other-modules: []
-  default-extensions:
-  - Strict
-  - StrictData
-  - OverloadedStrings
-  ghc-options:
-  - -Wall
-  - -Werror
-  - -Wcompat
-  - -Wincomplete-record-updates
-  - -Wincomplete-uni-patterns
-  - -Wredundant-constraints
-
-tests:
-  elm-http-test:
-    main:                Spec.hs
-    source-dirs:         test
+executables:
+  elm-tea-example:
+    main: Opinion.hs
+    source-dirs: src
     other-modules: []
     default-extensions:
     - Strict
@@ -65,4 +42,5 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - elm-http
+    - elm-tea >=0.1 && <0.2
+    - elm-http >=0.1 && <0.2

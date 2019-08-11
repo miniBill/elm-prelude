@@ -4,6 +4,7 @@ packages:
 - elm-prelude
 - elm-tea
 - elm-http
+- elm-tea-example
 
 extra-deps:
 - test-invariant-0.4.5.0@sha256:d1aa6b61e0057a4065eeff3286208e947a0b44c6a2186210399f5e5e7fb0d0dd

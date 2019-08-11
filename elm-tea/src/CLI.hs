@@ -1,14 +1,17 @@
 {-# LANGUAGE FlexibleInstances #-}
 
 module CLI
-  ( CLI
+  ( AlignmentType(..)
+  , CLI
+  , Cmd
   , InputType(..)
   , Program(..)
-  , AlignmentType(..)
+  , Sub
   , attributes
   , border
   , button
   , column
+  , element
   , input
   , row
   , run
@@ -24,7 +27,8 @@ import qualified CLI.Layout         as Layout
 import           CLI.Types          (AlignmentType (..), CLI (..),
                                      InputType (..), Program (..), attributes,
                                      border, button, column, input, row, text)
-import           CLI.Types.Internal (Focus (..))
+import           CLI.Types.Internal (Cmd (..), Focus (..), Sub (..))
+import qualified Cmd
 import           Compat             (Monad (..))
 import qualified Compat
 import           Graphics.Vty       (Vty)
@@ -32,27 +36,28 @@ import qualified Graphics.Vty       as Vty
 import qualified List
 import qualified Maybe
 import qualified String
+import qualified Sub
 import qualified Tuple
 
 run_ :: Program () model msg -> IO ()
 run_ = run ()
 
 run :: flags -> Program flags model msg -> IO ()
-run flags (Program init view update) =
-  let model = init flags
-  -- runCurses initializes the ncurses library
+run flags (Program init view update subscriptions) =
+  let (model, _) = init flags -- TODO: use initialCmd
    in do cfg <- Vty.standardIOConfig
          vty <- Vty.mkVty $ cfg {Vty.mouseMode = Just True}
-         mainLoop vty view update model
+         mainLoop vty view update subscriptions model
          Vty.shutdown vty
 
 mainLoop ::
      Vty
   -> (model -> CLI msg)
-  -> (msg -> model -> (model, IO (List msg)))
+  -> (msg -> model -> (model, Cmd msg))
+  -> (model -> Sub msg)
   -> model
   -> IO ()
-mainLoop vty view update initialModel =
+mainLoop vty view update _ initialModel =
   let go focus model = do
         let root = view model
         Vty.update vty $ Layout.display root
@@ -70,6 +75,8 @@ mainLoop vty view update initialModel =
           Nothing -> return () -- Exit
           Just (msgs, focus') -> do
             let (model', _) = List.foldl step (model, []) msgs
+            -- TODO: use cmd
+            -- TODO: use subscriptions
             go focus' model'
       step msg (mod, cmds) =
         let (mod', cmd) = update msg mod
@@ -204,6 +211,15 @@ sandbox ::
   -> (msg -> model -> model)
   -> Program () model msg
 sandbox init view update =
-  let init' _ = init
-      update' msg model = (update msg model, return [])
-   in Program init' view update'
+  let init' _ = (init, Cmd.none)
+      update' msg model = (update msg model, Cmd.none)
+      subscriptions _ = Sub.none
+   in Program init' view update' subscriptions
+
+element ::
+     (flags -> (model, Cmd msg))
+  -> (model -> CLI msg)
+  -> (msg -> model -> (model, Cmd msg))
+  -> (model -> Sub msg)
+  -> Program flags model msg
+element = Program
