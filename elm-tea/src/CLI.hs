@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase        #-}
 
 module CLI
   ( AlignmentType(..)
@@ -29,7 +30,9 @@ import           CLI.Types          (AlignmentType (..), CLI (..),
                                      border, button, column, input, row, text)
 import           CLI.Types.Internal (Cmd (..), Focus (..), Sub (..))
 import qualified Cmd
-import           Compat             (Monad (..))
+import           Compat             (Monad (..), TChan, atomically, forever,
+                                     forkIO, liftIO, mapM_, newTChanIO, orElse,
+                                     readTChan, retry, sequence, writeTChan)
 import qualified Compat
 import           Graphics.Vty       (Vty)
 import qualified Graphics.Vty       as Vty
@@ -37,27 +40,44 @@ import qualified List
 import qualified Maybe
 import qualified String
 import qualified Sub
-import qualified Tuple
 
 run_ :: Program () model msg -> IO ()
 run_ = run ()
 
 run :: flags -> Program flags model msg -> IO ()
 run flags (Program init view update subscriptions) =
-  let (model, _) = init flags -- TODO: use initialCmd
-   in do cfg <- Vty.standardIOConfig
+  let (model, initialCmd) = init flags
+   in do cmdTChan <- newTChanIO
+         msgTChan <- newTChanIO
+         atomically $ writeTChan cmdTChan initialCmd
+         _ <- forkIO $ worker cmdTChan msgTChan
+         cfg <- Vty.standardIOConfig
          vty <- Vty.mkVty $ cfg {Vty.mouseMode = Just True}
-         mainLoop vty view update subscriptions model
+         mainLoop cmdTChan msgTChan vty view update subscriptions model
          Vty.shutdown vty
 
+data Msg msg
+  = Terminate
+  | Focus (Maybe Focus)
+  | Msg msg
+
+worker :: TChan (Cmd msg) -> TChan (Msg msg) -> IO ()
+worker cmdTChan msgTChan =
+  forever $ do
+    cmd <- atomically $ readTChan cmdTChan
+    msgs <- sequence $ runCmd cmd
+    mapM_ (atomically . writeTChan msgTChan . Msg) msgs
+
 mainLoop ::
-     Vty
+     TChan (Cmd msg)
+  -> TChan (Msg msg)
+  -> Vty
   -> (model -> CLI msg)
   -> (msg -> model -> (model, Cmd msg))
   -> (model -> Sub msg)
   -> model
   -> IO ()
-mainLoop vty view update _ initialModel =
+mainLoop cmdTChan msgTChan vty view update _ initialModel =
   let go focus model = do
         let root = view model
         Vty.update vty $ Layout.display root
@@ -69,65 +89,74 @@ mainLoop vty view update _ initialModel =
               (Compat.fromIntegral r)
               (Compat.fromIntegral c)
           Nothing -> Vty.hideCursor $ Vty.outputIface vty
-        event <- Vty.nextEvent vty
-        let maybeMsgs = eventToMsgs root focus event
-        case maybeMsgs of
-          Nothing -> return () -- Exit
-          Just (msgs, focus') -> do
-            let (model', _) = List.foldl step (model, []) msgs
-            -- TODO: use cmd
+        msg <-
+          liftIO $
+          atomically $
+          orElse
+            (do event <- readTChan $ Vty._eventChannel $ Vty.inputIface vty
+                case eventToMsgs root focus event of
+                  [] -> retry
+                  (msg:msgs) -> do
+                    mapM_ (writeTChan msgTChan) msgs
+                    return msg)
+            (readTChan msgTChan)
+        case msg of
+          Terminate -> return () -- Exit
+          Focus focus' -> go focus' model
+          Msg mmsg -> do
+            let (model', cmd') = update mmsg model
+            atomically $ writeTChan cmdTChan cmd'
             -- TODO: use subscriptions
-            go focus' model'
-      step msg (mod, cmds) =
-        let (mod', cmd) = update msg mod
-         in (mod', cmd : cmds)
+            go focus model'
    in go (Focus.initialFocus $view initialModel) initialModel
 
--- Returns Nothing to exit, Just msgs for messages
-eventToMsgs ::
-     CLI msg -> Maybe Focus -> Vty.Event -> Maybe (List msg, Maybe Focus)
+eventToMsgs :: CLI msg -> Maybe Focus -> Vty.Event -> List (Msg msg)
 eventToMsgs root _ (Vty.EvMouseUp x y _) =
-  Just $ onClick (Compat.fromIntegral x) (Compat.fromIntegral y) root
-eventToMsgs _ _ (Vty.EvKey Vty.KEsc []) = Nothing
+  onClick (Compat.fromIntegral x) (Compat.fromIntegral y) root
+eventToMsgs _ _ (Vty.EvKey Vty.KEsc []) = [Terminate]
 eventToMsgs root (Just focus) (Vty.EvKey (Vty.KChar '\t') []) =
-  Just
-    ( []
-    , case Focus.nextFocus root focus of
-        Just f  -> Just f
-        Nothing -> Focus.initialFocus root)
+  [ Focus $
+    case Focus.nextFocus root focus of
+      Just f  -> Just f
+      Nothing -> Focus.initialFocus root
+  ]
 eventToMsgs root Nothing (Vty.EvKey (Vty.KChar '\t') []) =
-  Just ([], Focus.initialFocus root)
+  [Focus $ Focus.initialFocus root]
 eventToMsgs root (Just focus) (Vty.EvKey (Vty.KBackTab) []) =
-  Just
-    ( []
-    , case Focus.previousFocus root focus of
-        Just f  -> Just f
-        Nothing -> Focus.finalFocus root)
+  [ Focus $
+    case Focus.previousFocus root focus of
+      Just f  -> Just f
+      Nothing -> Focus.finalFocus root
+  ]
 eventToMsgs root Nothing (Vty.EvKey (Vty.KBackTab) []) =
-  Just ([], Focus.finalFocus root)
+  [Focus $ Focus.finalFocus root]
 eventToMsgs root (Just focus) (Vty.EvKey key modifiers) =
-  Just $ onKeyUp key modifiers root focus
-eventToMsgs _ focus _ = Just ([], focus)
+  onKeyUp key modifiers root focus
+eventToMsgs _ _ _ = []
 
-onKeyUp ::
-     Vty.Key -> List Vty.Modifier -> CLI msg -> Focus -> (List msg, Maybe Focus)
+mapFocus :: (Focus -> Focus) -> List (Msg msg) -> List (Msg msg)
+mapFocus f =
+  List.map
+    (\case
+       Focus fo -> Focus $ Maybe.map f fo
+       fo -> fo)
+
+onKeyUp :: Vty.Key -> List Vty.Modifier -> CLI msg -> Focus -> List (Msg msg)
 onKeyUp key modifiers =
-  let containerKeyUp ::
-           List (CLI msg) -> Int -> Focus -> (List msg, Maybe Focus)
+  let containerKeyUp :: List (CLI msg) -> Int -> Focus -> List (Msg msg)
       containerKeyUp children i cfocus =
         children & List.drop i & List.head &
-        (\h ->
-           case h of
-             Just x  -> go x cfocus
-             Nothing -> ([], Just cfocus)) &
-        Tuple.mapSecond (Maybe.map $ ChildFocus i)
+        (\case
+           Nothing -> [Focus Nothing]
+           Just x -> go x cfocus & mapFocus (ChildFocus i))
+      go :: CLI msg -> Focus -> List (Msg msg)
       go (Border child) focus = go child focus
       go (Attributes _ child) focus = go child focus
       go (Input _ v onInput) (This i) = onInputKeyUp v onInput i key modifiers
       go (Container _ _ children) (ChildFocus i cfocus) =
         containerKeyUp children i cfocus
-      go (Text _) _ = ([], Nothing)
-      go _ _ = ([], Nothing)
+      go (Text _) _ = [Focus Nothing]
+      go _ _ = [Focus Nothing]
    in go
 
 onInputKeyUp ::
@@ -136,12 +165,13 @@ onInputKeyUp ::
   -> Int
   -> Vty.Key
   -> List Vty.Modifier
-  -> (List msg, Maybe Focus)
+  -> List (Msg msg)
 onInputKeyUp v onInput i key modifiers =
   let inner Vty.KBS
         | i > 0 =
-          ( [onInput $ String.left (i - 1) v ++ String.dropLeft i v]
-          , Just $ This (i - 1))
+          [ Msg $ onInput $ String.left (i - 1) v ++ String.dropLeft i v
+          , Focus $ Just $ This (i - 1)
+          ]
       inner (Vty.KChar char) =
         let char' =
               if List.any
@@ -152,22 +182,20 @@ onInputKeyUp v onInput i key modifiers =
                    modifiers
                 then Char.toUpper char
                 else char
-         in ( [ onInput $
-                String.left i v ++
-                String.fromList [char'] ++ String.dropLeft i v
-              ]
-            , Just $ This (i + 1))
+            v' =
+              String.left i v ++ String.fromList [char'] ++ String.dropLeft i v
+         in [Msg $ onInput v', Focus $ Just $ This (i + 1)]
       inner Vty.KLeft
-        | i > 0 = ([], Just $ This $ i - 1)
+        | i > 0 = [Focus $ Just $ This $ i - 1]
       inner Vty.KRight
-        | i < String.length v = ([], Just $ This $ i + 1)
-      inner Vty.KHome = ([], Just $ This 0)
-      inner Vty.KEnd = ([], Just $ This $ String.length v)
-      inner _ = ([], Just $ This i)
+        | i < String.length v = [Focus $ Just $ This $ i + 1]
+      inner Vty.KHome = [Focus $ Just $ This 0]
+      inner Vty.KEnd = [Focus $ Just $ This $ String.length v]
+      inner _ = [Focus $ Just $ This i]
    in inner key
 
-onClick :: Int -> Int -> CLI msg -> (List msg, Maybe Focus)
-onClick _ _ (Text _) = ([], Nothing)
+onClick :: Int -> Int -> CLI msg -> List (Msg msg)
+onClick _ _ (Text _) = [Focus Nothing]
 onClick relx rely (Container layout alignment children) =
   Layout.childrenPositions layout alignment children &
   List.indexedMap (\i (pos, child) -> (i, pos, child)) &
@@ -178,32 +206,36 @@ onClick relx rely (Container layout alignment children) =
   List.head &
   (\found ->
      case found of
-       Nothing -> ([], Nothing)
+       Nothing -> [Focus Nothing]
        Just (i, (cx, cy), child) ->
-         onClick (relx - cx) (rely - cy) child &
-         Tuple.mapSecond (Maybe.map $ ChildFocus i))
+         onClick (relx - cx) (rely - cy) child & mapFocus (ChildFocus i))
 onClick relx rely (Border child) =
   let (w, h) = Layout.getSize child
    in if relx < (w + 2) && rely < (h + 2)
         then onClick (relx - 1) (rely - 1) child
-        else ([], Nothing)
+        else [Focus Nothing]
 onClick relx rely (Input _ v _) =
   let (w, h) = (max 10 $ String.length v + 1, 1)
    in if relx < (w + 2) && rely < (h + 2)
-        then ([], Just $ This 0)
-        else ([], Nothing)
+        then [Focus $ Just $ This 0]
+        else [Focus Nothing]
 onClick relx rely (Attributes as child) =
   let (w, h) = Layout.getSize child
    in if relx < w && rely < h
-        then let (_, f) = onClick relx rely child
-              in ( List.filterMap
-                     (\attr ->
-                        case attr of
-                          OnClick msg -> Just msg
-                          _           -> Nothing)
-                     as
-                 , f)
-        else ([], Nothing)
+        then (List.filterMap
+                (\attr ->
+                   case attr of
+                     OnClick msg -> Just $ Msg msg
+                     _           -> Nothing)
+                as) ++
+             (List.filter isFocus $ onClick relx rely child)
+        else [Focus Nothing]
+
+isFocus :: Msg msg -> Bool
+isFocus =
+  \case
+    Focus _ -> True
+    _ -> False
 
 sandbox ::
      model
