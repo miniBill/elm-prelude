@@ -11,6 +11,7 @@ import           CLI.Types          (CLI (..))
 import           CLI.Types.Internal (Focus (..))
 import qualified List
 import qualified Maybe
+import qualified String
 
 initialFocus :: CLI msg -> Maybe Focus
 initialFocus widget =
@@ -24,7 +25,7 @@ initialFocus widget =
         Attributes _ child     -> initialFocus child
         Text _                 -> Nothing
         Border child           -> initialFocus child
-        Input _ _ _            -> Just $ This 0
+        Input _ text _         -> Just $ This $ String.length text
         Container _ _ children -> childrenFocus children
 
 finalFocus :: CLI msg -> Maybe Focus
@@ -40,7 +41,7 @@ finalFocus widget =
         Attributes _ child     -> finalFocus child
         Text _                 -> Nothing
         Border child           -> finalFocus child
-        Input _ _ _            -> Just $ This 0
+        Input _ text _         -> Just $ This $ String.length text
         Container _ _ children -> childrenFocus children
 
 nextFocus :: CLI msg -> Focus -> Maybe Focus
@@ -53,7 +54,7 @@ nextFocus =
               Just focus' -> Just $ ChildFocus i $ focus'
               Nothing ->
                 List.indexedMap
-                  (\j e -> Maybe.map (ChildFocus $i + j + 1) $ initialFocus e)
+                  (\j e -> Maybe.map (ChildFocus $ i + j + 1) $ initialFocus e)
                   xs &
                 List.filterMap identity &
                 List.head
@@ -102,7 +103,7 @@ getFocusPosition =
         Maybe.map (\(x, y) -> (x + 1, y + 1)) $ getFocusPosition child focus
       go (Text _) _ = Nothing
       go (Attributes _ child) focus = getFocusPosition child focus
-      go (Input _ _ _) (This i) = Just (i + 1, 1)
+      go (Input _ _ _) (This i) = Just (i, 1)
       go (Container layout alignment children) (ChildFocus i cfocus) =
         containerFocus layout alignment children i cfocus
       go _ _ = Nothing

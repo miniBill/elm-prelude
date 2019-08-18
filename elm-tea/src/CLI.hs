@@ -32,7 +32,7 @@ import           CLI.Types.Internal (Cmd (..), Focus (..), Sub (..))
 import qualified Cmd
 import           Compat             (Monad (..), TChan, atomically, forever,
                                      forkIO, liftIO, mapM_, newTChanIO, orElse,
-                                     readTChan, retry, sequence, writeTChan)
+                                     readTChan, sequence, writeTChan)
 import qualified Compat
 import           Graphics.Vty       (Vty)
 import qualified Graphics.Vty       as Vty
@@ -78,7 +78,14 @@ mainLoop ::
   -> model
   -> IO ()
 mainLoop cmdTChan msgTChan vty view update _ initialModel =
-  let go focus model = do
+  let readVty root focus = do
+        event <- readTChan $ Vty._eventChannel $ Vty.inputIface vty
+        case eventToMsgs root focus event of
+          [] -> readVty root focus
+          (msg:msgs) -> do
+            mapM_ (writeTChan msgTChan) msgs
+            return msg
+      go focus model = do
         let root = view model
         Vty.update vty $ Layout.display root
         case Maybe.andThen (Focus.getFocusPosition root) focus of
@@ -90,16 +97,7 @@ mainLoop cmdTChan msgTChan vty view update _ initialModel =
               (Compat.fromIntegral c)
           Nothing -> Vty.hideCursor $ Vty.outputIface vty
         msg <-
-          liftIO $
-          atomically $
-          orElse
-            (do event <- readTChan $ Vty._eventChannel $ Vty.inputIface vty
-                case eventToMsgs root focus event of
-                  [] -> retry
-                  (msg:msgs) -> do
-                    mapM_ (writeTChan msgTChan) msgs
-                    return msg)
-            (readTChan msgTChan)
+          liftIO $ atomically $ orElse (readTChan msgTChan) (readVty root focus)
         case msg of
           Terminate -> return () -- Exit
           Focus focus' -> go focus' model
