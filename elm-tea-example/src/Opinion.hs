@@ -7,6 +7,7 @@ import qualified CLI
 import qualified Cmd
 import qualified Http
 import           Result (Result (..))
+import qualified String
 import qualified Sub
 
 main :: IO ()
@@ -34,8 +35,13 @@ update msg _ =
   case msg of
     GotText result ->
       case result of
-        Ok fullText -> (Success fullText, Cmd.none)
-        Err _       -> (Failure, Cmd.none)
+        Ok fullText ->
+          ( Success $
+            String.replace "!!!NEWLINE!!!" "\n\n" .
+            String.replace "\n" "" . String.replace "\n\n" "!!!NEWLINE!!!" $
+            String.replace "\r" "" fullText
+          , Cmd.none)
+        Err _ -> (Failure, Cmd.none)
 
 -- SUBSCRIPTIONS
 subscriptions :: Model -> Sub Msg

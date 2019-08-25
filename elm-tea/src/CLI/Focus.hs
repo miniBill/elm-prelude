@@ -6,15 +6,14 @@ module CLI.Focus
   , previousFocus
   ) where
 
-import qualified CLI.Layout         as Layout
-import           CLI.Types          (CLI (..))
-import           CLI.Types.Internal (Focus (..))
-import qualified List
-import qualified Maybe
-import qualified String
+--import qualified CLI.Layout         as Layout
+import           CLI.Types.Internal (CLI (..), Focus (..))
 
+--import qualified List
+--import qualified Maybe
+--import qualified String
 initialFocus :: CLI msg -> Maybe Focus
-initialFocus widget =
+initialFocus = \_ -> Nothing {- widget =
   let childrenFocus children =
         children &
         List.indexedMap
@@ -26,10 +25,10 @@ initialFocus widget =
         Text _                 -> Nothing
         Border child           -> initialFocus child
         Input _ text _         -> Just $ This $ String.length text
-        Container _ _ children -> childrenFocus children
+        Container _ _ children -> childrenFocus children -}
 
 finalFocus :: CLI msg -> Maybe Focus
-finalFocus widget =
+finalFocus = \_ -> Nothing {- widget =
   let childrenFocus children =
         children &
         List.indexedMap
@@ -42,10 +41,10 @@ finalFocus widget =
         Text _                 -> Nothing
         Border child           -> finalFocus child
         Input _ text _         -> Just $ This $ String.length text
-        Container _ _ children -> childrenFocus children
+        Container _ _ children -> childrenFocus children -}
 
 nextFocus :: CLI msg -> Focus -> Maybe Focus
-nextFocus =
+nextFocus = \_ _ -> Nothing {-
   let containerNextFocus children i focus =
         case children & List.drop i of
           [] -> Nothing
@@ -65,10 +64,10 @@ nextFocus =
         containerNextFocus children i cfocus
       go (Text _) _ = Nothing
       go _ _ = Nothing
-   in go
+   in go -}
 
 previousFocus :: CLI msg -> Focus -> Maybe Focus
-previousFocus =
+previousFocus = \_ _ -> Nothing {-
   let containerPreviousFocus children i focus =
         case List.take (i + 1) children & List.reverse of
           [] -> Nothing
@@ -88,10 +87,10 @@ previousFocus =
         containerPreviousFocus children i cfocus
       go (Text _) _ = Nothing
       go _ _ = Nothing
-   in go
+   in go -}
 
 getFocusPosition :: CLI msg -> Focus -> Maybe (Int, Int)
-getFocusPosition =
+getFocusPosition = \_ _ -> Nothing {-
   let containerFocus layout alignment children i cfocus =
         children & Layout.childrenPositions layout alignment & List.drop i &
         List.head &
@@ -108,3 +107,4 @@ getFocusPosition =
         containerFocus layout alignment children i cfocus
       go _ _ = Nothing
    in go
+-}

@@ -1,48 +1,26 @@
 module CLI.Types
-  ( AlignmentType(..)
-  , Attribute(..)
-  , CLI(..)
+  ( Attribute
+  , CLI
   , Cmd
   , InputType(..)
-  , LayoutType(..)
   , Program(..)
   , Sub
-  , attributes
-  , border
+  , TextAlign(..)
+  , VerticalAlign(..)
   , button
-  , column
+  , cell
   , input
+  , singleColumn
+  , singleRow
   , row
+  , table
   , text
   ) where
 
-import           CLI.Types.Internal (Cmd, Sub)
-import           Color              (Color)
-
-data Attribute msg
-  = OnClick msg
-  | Foreground Color
-  | Background Color
-
-data CLI msg
-  = Text String
-  | Container LayoutType AlignmentType (List (CLI msg))
-  | Attributes (List (Attribute msg)) (CLI msg)
-  | Border (CLI msg)
-  | Input InputType String (String -> msg)
-
-data LayoutType
-  = LayoutRow
-  | LayoutColumn
-
-data AlignmentType
-  = AlignStart
-  | AlignCenter
-  | AlignEnd
-
-data InputType
-  = TypeText
-  | TypePassword
+import           CLI.Types.Internal (Attribute, CLI (..), Cmd, InputType (..),
+                                     NodeType (..), Sub, TextAlign (..),
+                                     VerticalAlign (..))
+import qualified List
 
 data Program flags model msg =
   Program
@@ -51,23 +29,28 @@ data Program flags model msg =
     (msg -> model -> (model, Cmd msg))
     (model -> Sub msg)
 
-attributes :: List (Attribute msg) -> CLI msg -> CLI msg
-attributes = Attributes
+button :: List (Attribute msg) -> List (CLI msg) -> CLI msg
+button = Node Button
 
-button :: List (Attribute msg) -> CLI msg -> CLI msg
-button attrs = Attributes attrs . Border
+cell :: List (Attribute msg) -> List (CLI msg) -> CLI msg
+cell = Node Cell
 
-border :: CLI msg -> CLI msg
-border = Border
+input :: List (Attribute msg) -> List (CLI msg) -> CLI msg
+input = Node Input
 
-column :: AlignmentType -> List (CLI msg) -> CLI msg
-column = Container LayoutColumn
+row :: List (Attribute msg) -> List (CLI msg) -> CLI msg
+row = Node Row
 
-input :: InputType -> String -> (String -> msg) -> CLI msg
-input = Input
+singleColumn :: List (Attribute msg) -> List (CLI msg) -> CLI msg
+singleColumn attrs cells =
+  table attrs $ List.map (\c -> row [] [cell [] [c]]) cells
 
-row :: AlignmentType -> List (CLI msg) -> CLI msg
-row = Container LayoutRow
+singleRow :: List (Attribute msg) -> List (CLI msg) -> CLI msg
+singleRow attrs cells =
+  table attrs [row [] $ List.map (\c -> cell [] [c]) cells]
+
+table :: List (Attribute msg) -> List (CLI msg) -> CLI msg
+table = Node Table
 
 text :: String -> CLI msg
 text = Text

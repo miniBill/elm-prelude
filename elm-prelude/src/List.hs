@@ -35,6 +35,7 @@ module List
   , tail
   , take
   , unzip
+  , unzip3
   ) where
 
 import qualified Data.List
@@ -484,3 +485,11 @@ unzip :: List (a, b) -> (List a, List b)
 unzip pairs =
   let step (x, y) (xs, ys) = (x : xs, y : ys)
    in foldr step ([], []) pairs
+
+{-| Decompose a list of triples into a triple of lists.
+    unzip3 [(0, True, 'a'), (17, False, 'b'), (1337, True, 'l')] == ([0,17,1337], [True,False,True], ['a', 'b', 'l'])
+-}
+unzip3 :: List (a, b, c) -> (List a, List b, List c)
+unzip3 pairs =
+  let step (x, y, z) (xs, ys, zs) = (x : xs, y : ys, z : zs)
+   in foldr step ([], [], []) pairs

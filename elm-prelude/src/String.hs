@@ -4,10 +4,13 @@ module String
   , fromInt
   , fromList
   , intersperse
+  , join
   , left
   , length
   , padRight
   , repeat
+  , replace
+  , split
   , toList
   ) where
 
@@ -50,3 +53,12 @@ dropLeft = T.drop . fromIntegral
 -- "hahaha"
 repeat :: Int -> String -> String
 repeat = T.replicate . fromIntegral
+
+replace :: String -> String -> String -> String
+replace = T.replace
+
+split :: String -> String -> List String
+split = T.splitOn
+
+join :: String -> List String -> String
+join = T.intercalate

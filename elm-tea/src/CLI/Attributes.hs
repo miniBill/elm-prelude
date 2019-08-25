@@ -1,18 +1,18 @@
 module CLI.Attributes
-  ( Attribute(..)
+  ( Attribute
   , backgroundColor
   , foregroundColor
   , onClick
   ) where
 
-import           CLI.Types (Attribute (..))
-import           Color     (Color)
+import           CLI.Types.Internal (Attribute (..))
+import           Color              (Color)
 
 onClick :: msg -> Attribute msg
 onClick = OnClick
 
 foregroundColor :: Color -> Attribute msg
-foregroundColor = Foreground
+foregroundColor = ForegroundColor
 
 backgroundColor :: Color -> Attribute msg
-backgroundColor = Background
+backgroundColor = BackgroundColor

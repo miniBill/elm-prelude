@@ -2,16 +2,12 @@
 {-# LANGUAGE LambdaCase        #-}
 
 module CLI
-  ( AlignmentType(..)
-  , CLI
+  ( CLI
   , Cmd
   , InputType(..)
   , Program(..)
   , Sub
-  , attributes
-  , border
   , button
-  , column
   , element
   , input
   , row
@@ -21,13 +17,10 @@ module CLI
   , text
   ) where
 
-import qualified Char
-import           CLI.Attributes     (Attribute (..))
 import qualified CLI.Focus          as Focus
 import qualified CLI.Layout         as Layout
-import           CLI.Types          (AlignmentType (..), CLI (..),
-                                     InputType (..), Program (..), attributes,
-                                     border, button, column, input, row, text)
+import           CLI.Types          (CLI, InputType (..), Program (..), button,
+                                     input, row, text)
 import           CLI.Types.Internal (Cmd (..), Focus (..), Sub (..))
 import qualified Cmd
 import           Compat             (Monad (..), TChan, atomically, forever,
@@ -36,11 +29,15 @@ import           Compat             (Monad (..), TChan, atomically, forever,
 import qualified Compat
 import           Graphics.Vty       (Vty)
 import qualified Graphics.Vty       as Vty
-import qualified List
+
 import qualified Maybe
-import qualified String
 import qualified Sub
 
+--import qualified Char
+--import           CLI.Attributes     (Attribute (..))
+--import qualified Graphics.Vty.Output.Interface as Vty
+--import qualified List
+--import qualified String
 run_ :: Program () model msg -> IO ()
 run_ = run ()
 
@@ -87,7 +84,11 @@ mainLoop cmdTChan msgTChan vty view update _ initialModel =
             return msg
       go focus model = do
         let root = view model
-        Vty.update vty $ Layout.display root
+        (sizeW, sizeH) <- Vty.displayBounds $ Vty.outputIface vty
+        Vty.update vty $
+          Layout.display
+            (Compat.fromIntegral sizeW, Compat.fromIntegral sizeH)
+            root
         case Maybe.andThen (Focus.getFocusPosition root) focus of
           Just (r, c) -> do
             Vty.showCursor $ Vty.outputIface vty
@@ -132,15 +133,16 @@ eventToMsgs root (Just focus) (Vty.EvKey key modifiers) =
   onKeyUp key modifiers root focus
 eventToMsgs _ _ _ = []
 
+{-
 mapFocus :: (Focus -> Focus) -> List (Msg msg) -> List (Msg msg)
 mapFocus f =
   List.map
     (\case
        Focus fo -> Focus $ Maybe.map f fo
        fo -> fo)
-
+-}
 onKeyUp :: Vty.Key -> List Vty.Modifier -> CLI msg -> Focus -> List (Msg msg)
-onKeyUp key modifiers =
+onKeyUp _ _ _ _ = [] {- key modifiers =
   let containerKeyUp :: List (CLI msg) -> Int -> Focus -> List (Msg msg)
       containerKeyUp children i cfocus =
         children & List.drop i & List.head &
@@ -191,8 +193,12 @@ onInputKeyUp v onInput i key modifiers =
       inner Vty.KEnd = [Focus $ Just $ This $ String.length v]
       inner _ = [Focus $ Just $ This i]
    in inner key
+-}
 
 onClick :: Int -> Int -> CLI msg -> List (Msg msg)
+onClick _ _ _ = []
+
+{-
 onClick _ _ (Text _) = [Focus Nothing]
 onClick relx rely (Container layout alignment children) =
   Layout.childrenPositions layout alignment children &
@@ -234,7 +240,7 @@ isFocus =
   \case
     Focus _ -> True
     _ -> False
-
+-}
 sandbox ::
      model
   -> (model -> CLI msg)

@@ -3,6 +3,7 @@ module Compat
   , Either(..)
   , Monad(..)
   , MonadIO(..)
+  , Show(..)
   , atomically
   , catch
   , forever
@@ -27,4 +28,4 @@ import           Control.Monad                (forever, mapM, mapM_, sequence)
 import           Control.Monad.IO.Class       (MonadIO (..))
 import           Control.Monad.STM            (atomically, orElse, retry)
 import           Kernel                       (Either (..), Monad (..),
-                                               fromIntegral)
+                                               Show (..), fromIntegral)
