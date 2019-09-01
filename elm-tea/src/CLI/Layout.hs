@@ -12,52 +12,85 @@ import qualified Graphics.Vty       as Vty
 import qualified List
 import qualified Maybe
 import qualified String
+import qualified Tuple
 
 --import           Color              (Color)
 --import qualified Color
 --import qualified Compat
---import qualified Tuple
-display :: (Int, Int) -> CLI msg -> Picture
-display size widget =
-  let measured = measure size widget
+display :: CLI msg -> Picture
+display widget =
+  let measured = measure widget
    in Vty.picForImage $ displayWidget Vty.defAttr measured
 
 data Measured msg
   = MText (Int, Int) (List String)
   | MNode (Int, Int) NodeType (List (Attribute msg)) (List (Measured msg))
 
-measure :: (Int, Int) -> CLI msg -> Measured msg
-measure size =
-  let getWidths :: CLI msg -> (CLI msg, Int, Int)
-      getWidths (Text s) =
-        let minWidth =
-              s & String.replace "\n" " " & String.split " " &
-              List.map String.length &
-              List.maximum &
-              Maybe.withDefault 0
-            preferred =
-              s & String.split "\n" & List.map String.length & List.maximum &
-              Maybe.withDefault 0
-         in (Text s, minWidth, preferred)
-      getWidths (node@(Node Cell [] children)) =
-        let (_, minWidths, preferreds) =
-              children & List.map getWidths & List.unzip3
-            minWidth = List.minimum minWidths & Maybe.withDefault 0
-            preferred =
-              if List.isEmpty preferreds
-                then 0
-                else List.sum preferreds + List.length preferreds - 1
-         in (node, minWidth, preferred)
-      getWidths node = (node, 0, 0)
-      go :: (Int, Int) -> (CLI msg, Int, Int) -> Measured msg
-      go (maxw, maxh) (Text s, _, preferred) =
-        let width =
-              if preferred <= maxw
-                then preferred
-                else maxw
-         in reflow width maxh s
-      go _ _ = MText (0, 0) []
-   in go size . getWidths
+size :: Measured msg -> (Int, Int)
+size (MText wsize _)     = wsize
+size (MNode wsize _ _ _) = wsize
+
+measure :: CLI msg -> Measured msg
+measure (Text s) =
+  let lines = s & String.split "\n"
+      width = lines & List.map String.length & List.maximum0
+      height = List.length lines
+   in MText (width, height) lines
+measure (Node Cell attrs children) =
+  let (wsize, children') = measureRow children
+   in MNode wsize Cell attrs children'
+measure (Node Row attrs children) =
+  let (wsize, children') = measureRow children
+   in MNode wsize Row attrs children'
+measure (Node Button attrs children) =
+  let ((width, height), children') = measureRow children
+   in MNode (width + 2, height + 2) Button attrs children'
+measure (Node Input attrs children) =
+  let value =
+        List.foldl
+          (\e a ->
+             case e of
+               Value v -> v
+               _       -> a)
+          ""
+          attrs
+   in MNode (String.length value + 3, 3) Input attrs []
+measure (Node Table attrs children) =
+  let asRow (Node Row rattrs cells) =
+        Just (rattrs, cells & List.filterMap asCell)
+      asRow _ = Nothing
+      asCell (Node Cell _ cs) = Just $ measureRow cs
+      asCell _                = Nothing
+      rawRows = children & List.filterMap asRow
+      columnCount = rawRows & List.map List.length & List.maximum0
+      rows =
+        rawRows &
+        List.map
+          (\row ->
+             row ++ List.repeat (columnCount - List.length row) ((0, 0), []))
+      cols = List.transpose rows
+      maximumWidth = List.maximum0 . List.map (\((width, _), _) -> width)
+      maximumHeight = List.maximum0 . List.map (\((_, height), _) -> height)
+      width =
+        if columnCount == 0
+          then 2
+          else cols & List.map maximumWidth & List.sum &
+               (\s -> s + columnCount + 1)
+      height =
+        if List.isEmpty rows
+          then 2
+          else rows & List.map maximumHeight & List.sum &
+               (\s -> s + List.length rows + 1)
+      rowToMeasured row = MNode (rwidth, rheight) Row [] cells'
+      children' = List.map rowToMeasured rows
+   in MNode (width, height) Table attrs children'
+
+measureRow children =
+  let children' = List.map measure children
+      (width, height) =
+        children' & List.map size & List.unzip & Tuple.mapFirst List.sum &
+        Tuple.mapSecond List.maximum0
+   in ((width, height), children')
 
 reflow :: Int -> Int -> String -> Measured msg
 reflow 0 _ _ = MText (0, 0) []
@@ -90,14 +123,13 @@ reflow width maxh s =
         List.reverse
       lines = s & String.split "\n" & List.concatMap reflowLine & List.take maxh
    in MText
-        ( List.map String.length lines & List.maximum & Maybe.withDefault 0
-        , List.length lines)
+        (List.map String.length lines & List.maximum0, List.length lines)
         lines
 
 displayWidget :: Attr -> Measured msg -> Image
-displayWidget attr (MText size text) = displayText size attr text
-displayWidget attr (MNode size _ _ _) -- nodeType attrs children) =
- = displayText size attr ["Todo"]
+displayWidget attr (MText _ text) = displayText attr text
+displayWidget attr (MNode _ _ _ _) -- nodeType attrs children) =
+ = displayText attr ["Todo"]
 
 {-
   case nodeType of
@@ -115,8 +147,8 @@ displayWidget attr (MNode size _ _ _) -- nodeType attrs children) =
        in displayBorder attr $
           Text $ String.padRight 10 ' ' displayString ++ " "
 -}
-displayText :: (Int, Int) -> Attr -> List String -> Image
-displayText (_, _) attr s =
+displayText :: Attr -> List String -> Image
+displayText attr s =
   Vty.vertCat $ List.map (Vty.text' attr . String.replace "\r" "") s -- A piece of text is simply written
 {-
 getSize :: (Int,Int) -> CLI msg -> (Int,Int)
@@ -140,8 +172,7 @@ childrenPositions LayoutColumn = columnPositions
 columnPositions :: AlignmentType -> List (CLI msg) -> List ((Int, Int), CLI msg)
 columnPositions alignment children =
   let maxWidth =
-        children & List.map getSize & List.map Tuple.first & List.maximum &
-        Maybe.withDefault 0
+        children & List.map getSize & List.map Tuple.first & List.maximum0
    in children &
       List.foldl
         (\child (y, acc) ->
@@ -154,8 +185,7 @@ columnPositions alignment children =
 rowPositions :: AlignmentType -> List (CLI msg) -> List ((Int, Int), CLI msg)
 rowPositions alignment children =
   let maxHeight =
-        children & List.map getSize & List.map Tuple.second & List.maximum &
-        Maybe.withDefault 0
+        children & List.map getSize & List.map Tuple.second & List.maximum0
    in children &
       List.foldl
         (\child (x, acc) ->

@@ -1,3 +1,4 @@
+-- Most of this code comes from Elm's List.elm
 module List
   ( all
   , any
@@ -20,8 +21,10 @@ module List
   , map4
   , map5
   , maximum
+  , maximum0
   , member
   , minimum
+  , minimum0
   , partition
   , product
   , range
@@ -34,13 +37,14 @@ module List
   , sum
   , tail
   , take
+  , transpose
   , unzip
   , unzip3
   ) where
 
 import qualified Data.List
 
-{-| You can create a `List` in HaskElm with the `[1,2,3]` syntax, so lists are
+{-| You can create a `List` in Haskell with the `[1,2,3]` syntax, so lists are
 used all over the place. This module has a bunch of functions to help you work
 with them!
 # Create
@@ -493,3 +497,27 @@ unzip3 :: List (a, b, c) -> (List a, List b, List c)
 unzip3 pairs =
   let step (x, y, z) (xs, ys, zs) = (x : xs, y : ys, z : zs)
    in foldr step ([], [], []) pairs
+
+maximum0 :: List Int -> Int
+maximum0 list =
+  case maximum list of
+    Nothing -> 0
+    Just m  -> m
+
+minimum0 :: List Int -> Int
+minimum0 list =
+  case minimum list of
+    Nothing -> 0
+    Just m  -> m
+
+-- Copied from elm-community/list-extra
+transpose :: List (List a) -> List (List a)
+transpose listOfLists =
+  List.foldr
+    (List.map2 (:))
+    (List.repeat (rowsLength listOfLists) [])
+    listOfLists
+
+rowsLength :: List (List a) -> Int
+rowsLength []    = 0
+rowsLength (x:_) = length x

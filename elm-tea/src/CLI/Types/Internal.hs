@@ -45,6 +45,7 @@ data Attribute msg
   | OnInput (String -> msg)
   | TextAlign TextAlign
   | VerticalAlign VerticalAlign
+  | Value String
 
 data CLI msg
   = Text String
